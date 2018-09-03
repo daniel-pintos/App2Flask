@@ -1,36 +1,37 @@
-import os
-
 from flask import Flask
 from flask_bcrypt import Bcrypt
 from flask_login import LoginManager
 from flask_mail import Mail
 from flask_sqlalchemy import SQLAlchemy
 
+from app.config import Config
 
-app = Flask(__name__)
-# vai crir um arquivo.
-app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///site.db'
-# secrets, você pode pegar o secrets.token_hex(16)
-app.config['SECRET_KEY'] = 'random-caracteres'
-
-db = SQLAlchemy(app)
-bcrypt = Bcrypt(app)
-lg = LoginManager(app)
-lg.login_view = 'login'
+db = SQLAlchemy()
+bcrypt = Bcrypt()
+lg = LoginManager()
+lg.login_view = 'users.login'
 lg.login_message_category = 'info'
+mail = Mail()
 
-app.config['MAIL_SERVER'] = 'smtp.googlemail.com'
-app.config['MAIL_PORT'] = 587
-app.config['MAIL_USE_TLS'] = True
-app.config['MAIL_USERNAME'] = os.environ.get('EMAIL_USER')
-app.config['MAIL_PASSWORD'] = os.environ.get('EMAIL_PASS')
-mail = Mail(app)
 
-# importação de rotas.
-from app.main.routes import main
-from app.posts.routes import posts
-from app.users.routes import users
+def create_app(config_Class=Config):
+    app = Flask(__name__)
+    app.config.from_object(Config)
 
-app.register_blueprint(users)
-app.register_blueprint(posts)
-app.register_blueprint(main)
+    db.init_app(app)
+    bcrypt.init_app(app)
+    lg.init_app(app)
+    mail.init_app(app)
+
+    # importação de rotas.
+    from app.main.routes import main
+    from app.posts.routes import posts
+    from app.users.routes import users
+    from app.errors.handlers import errors
+
+    app.register_blueprint(users)
+    app.register_blueprint(posts)
+    app.register_blueprint(main)
+    app.register_blueprint(errors)
+
+    return app

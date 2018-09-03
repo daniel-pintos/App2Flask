@@ -5,7 +5,8 @@ from PIL import Image
 from flask import url_for
 from flask_mail import Message
 
-from app import app, mail
+from app import mail
+from flask import current_app
 
 
 # save this picture and rendimension
@@ -17,7 +18,7 @@ def save_picture(form_picture):
     # vamos concatenar
     picture_fn = random_hex + f_ext
     # vamos salvar no static folders
-    picture_path = os.path.join(app.root_path, 'static/profile_pics', picture_fn)
+    picture_path = os.path.join(current_app.root_path, 'static/profile_pics', picture_fn)
 
     # vamos redimensionar para compactar
     output_size = (125, 125)
@@ -35,7 +36,7 @@ def send_reset_email(user):
                   recipients=[user.email])
     msg.body = f"""
          To reset your password, visit the following link:
-         {url_for('reset_token', token=token, _external=True)}
+         {url_for('users.reset_token', token=token, _external=True)}
 
          If you did not make this request then simply ignore this email
     """
